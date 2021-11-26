@@ -1,6 +1,6 @@
 from types import LambdaType
 import zipfile
-import properties as properties
+import pyTacview.properties as properties
 import datetime
 import logging
 import geopy.distance
@@ -152,15 +152,18 @@ class Reference(Object):
                 logging.info(f"TacviewParser: {vals[0]}: {vals[1]}")
 
 class TacviewParser():
-    def __init__(self, filename) -> None:
+    def __init__(self, filename, progressCallback = None) -> None:
         self._fileHandler = FileHandler(filename)
         self._lines = self._fileHandler.lines
         self._objects = {}
         self._reference = Reference(id = 0)
+        self._progressCallback = progressCallback
 
     def decode(self):
-        for line in self._lines:
+        for id, line in enumerate(self._lines):
             self.decodeLine(line.replace("\n", ""))
+            if self._progressCallback is not None and id%100 == 0:
+                self._progressCallback(int(id/len(self._lines)*100))
 
     def decodeLine(self, line):
         if "//" in line:
